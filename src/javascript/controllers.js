@@ -75,6 +75,17 @@ module.exports = angular.module(
         });
       };
 
+      $scope.autoTagOrphan = function() {
+        _.map($scope.visibleGroups, function(group) {
+          group.forEach(function (photo, index, array) {
+            if (_.contains(photo.tags, "orphandelete")) {
+              console.log("subgroup", index, photo, photo.tags);
+              addTag(photo);
+            }
+          });
+        });
+      };
+
       function hasMaxDateTakenGranularity(photo) {
         return true;
         //return photo.datetakengranularity == "0";
@@ -97,6 +108,7 @@ module.exports = angular.module(
         var groups = _.groupBy(photos, fingerprint);
         var groups2 = _.filter(groups, atLeastTwo);
         $scope.groups = groups2;
+        // console.log(groups2[0]);
         updateVisibleGroups();
       }
 
