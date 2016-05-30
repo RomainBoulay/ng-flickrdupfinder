@@ -1,3 +1,6 @@
+# Run
+
+> gulp
 
 # ng-flickrdupfinder
 
