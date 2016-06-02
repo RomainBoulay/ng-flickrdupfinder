@@ -15,7 +15,7 @@
     "browser-sync": "~2.2.1",
     "browserify": "^9.0.3",
     "debowerify": "^1.2.0",
-    "gulp": "^3.8.11",
+    "gulp": "^3.9.1",
     "gulp-changed": "^1.1.1",
     "gulp-gh-pages": "^0.4.0",
     "gulp-imagemin": "^2.2.1",

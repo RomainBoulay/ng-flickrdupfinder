@@ -20,9 +20,9 @@ module.exports = angular.module(
     'photoCtrl',
     ['$scope', '$log', 'Flickr', 'UserVoice', 'Keen', function($scope, $log, Flickr, UserVoice, Keen) {
       var _ = require('lodash');
-      var specialTag = 'flickrdupfinder';
-      $scope.itemsPerPage = 16;
-      $scope.maxSize = 10;
+      var specialTag = 'flickrdupfinderorphan';
+      $scope.itemsPerPage = 1600;
+      $scope.maxSize = 1000;
 
       $scope.toggleTag = function(photo) {
         if (photo.duplicate) {
@@ -76,14 +76,17 @@ module.exports = angular.module(
       };
 
       $scope.autoTagOrphan = function() {
+        var number = 0;
         _.map($scope.visibleGroups, function(group) {
           group.forEach(function (photo, index, array) {
             if (_.contains(photo.tags, "orphandelete")) {
               console.log("subgroup", index, photo, photo.tags);
               addTag(photo);
+              number = number + 1;
             }
           });
         });
+        console.log("Done autoTagOrphan", number);
       };
 
       function hasMaxDateTakenGranularity(photo) {
