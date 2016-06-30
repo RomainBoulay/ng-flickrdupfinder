@@ -2,6 +2,7 @@
   <p>
     <a class="btn btn-warning" role="button" ng-click="autoTag()">mark all but one of each</a>
     <a class="btn btn-warning" role="button" ng-click="autoTagOrphan()">mark orphans</a>
+    <a class="btn btn-warning" role="button" ng-click="autoTagAll()">mark all but auto-upload</a>
   </p>
   <pagination total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()" max-size="maxSize" class="pagination-sm" boundary-links="true" rotate="false" num-pages="numPages" items-per-page="itemsPerPage"></pagination>
   <div ng-if="initialDownload">
@@ -26,6 +27,8 @@
   <pagination total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()" max-size="maxSize" class="pagination-sm" boundary-links="true" rotate="false" num-pages="numPages" items-per-page="itemsPerPage"></pagination>
   <p>
     <a class="btn btn-warning" role="button" ng-click="autoTag()">mark all but one of each</a>
+    <a class="btn btn-warning" role="button" ng-click="autoTagOrphan()">mark orphans</a>
+    <a class="btn btn-warning" role="button" ng-click="autoTagAll()">mark all but auto-upload</a>
   </p>
 </div>
 

@@ -20,9 +20,9 @@ module.exports = angular.module(
     'photoCtrl',
     ['$scope', '$log', 'Flickr', 'UserVoice', 'Keen', function($scope, $log, Flickr, UserVoice, Keen) {
       var _ = require('lodash');
-      var specialTag = 'flickrdupfinderorphan';
-      $scope.itemsPerPage = 1600;
-      $scope.maxSize = 1000;
+      var specialTag = 'dupdup';
+      $scope.itemsPerPage = 160;
+      $scope.maxSize = 100;
 
       $scope.toggleTag = function(photo) {
         if (photo.duplicate) {
@@ -33,6 +33,12 @@ module.exports = angular.module(
       };
 
       function addTag(photo) {
+        if (_.contains(photo.tags, specialTag)) {
+          console.log("addTag. skipping:", photo.id, photo.title, photo.tags);
+          return;
+        }
+
+        console.log("addTag. tagging", photo.id, photo.title, photo.tags);
         photo.inFlight = true;
         Flickr.get({
           method: 'flickr.photos.addTags',
@@ -80,13 +86,25 @@ module.exports = angular.module(
         _.map($scope.visibleGroups, function(group) {
           group.forEach(function (photo, index, array) {
             if (_.contains(photo.tags, "orphandelete")) {
-              console.log("subgroup", index, photo, photo.tags);
               addTag(photo);
               number = number + 1;
             }
           });
         });
         console.log("Done autoTagOrphan", number);
+      };
+
+      $scope.autoTagAll = function() {
+        var number = 0;
+        _.map($scope.visibleGroups, function(group) {
+          group.forEach(function (photo, index, array) {
+            if (_.contains(photo.tags, "autoupload") == false) {
+              addTag(photo);
+              number = number + 1;
+            }
+          });
+        });
+        console.log("Done autoTagAll", number);
       };
 
       function hasMaxDateTakenGranularity(photo) {
