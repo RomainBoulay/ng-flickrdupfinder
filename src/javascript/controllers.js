@@ -85,7 +85,7 @@ module.exports = angular.module(
         var number = 0;
         _.map($scope.visibleGroups, function(group) {
           group.forEach(function (photo, index, array) {
-            if (_.contains(photo.tags, "orphandelete")) {
+            if (_.contains(photo.tags, "orphanphotos")) {
               addTag(photo);
               number = number + 1;
             }
@@ -107,18 +107,16 @@ module.exports = angular.module(
         console.log("Done autoTagAll", number);
       };
 
-      function hasMaxDateTakenGranularity(photo) {
-        return true;
-        //return photo.datetakengranularity == "0";
-      }
-
       function updateDuplicateState(photo) {
         photo['duplicate'] = _.contains(photo.tags.split(/ /), specialTag);
         return photo;
       }
 
       function fingerprint(photo) {
-        return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
+        // console.log("photo", photo);
+        return photo.datetaken;
+        // return '##' + photo.title.replace(/-[0-9]$/, '');
+        // return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
       }
 
       function atLeastTwo(group) {
@@ -143,10 +141,8 @@ module.exports = angular.module(
             sort: 'date-taken-asc'}, function(result) {
               $scope.totalPages = result.photos.pages;
               var resultPhotos = result.photos.photo;
-              var filteredResultPhotos =
-                _.filter(resultPhotos, hasMaxDateTakenGranularity);
               var updatedResultPhotos =
-                _.map(filteredResultPhotos, updateDuplicateState);
+                _.map(resultPhotos, updateDuplicateState);
               var photosAcc2 = photosAcc.concat(updatedResultPhotos);
               if (page < result.photos.pages) {
                 getPage(page + 1, photosAcc2);
