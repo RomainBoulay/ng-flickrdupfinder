@@ -18,7 +18,7 @@
 
   <div class="col-sm-6 col-md-4 col-lg-3" ng-repeat="(fingerprint, photos) in visibleGroups track by fingerprint">
     <span ng-repeat="(id, photo) in photos track by id">
-      <img ng-src="http://farm{{photo.farm}}.staticflickr.com/{{photo.server}}/{{photo.id}}_{{photo.secret}}_s.jpg" title="{{photo.title}} | {{photo.tags}}" ng-click="toggleTag(photo)" ng-class="{inflight: photo.inFlight, duplicate: photo.duplicate, photo: true}"></img>
+      <img ng-src="http://farm{{photo.farm}}.staticflickr.com/{{photo.server}}/{{photo.id}}_{{photo.secret}}_s.jpg" title="{{photo.title}} | {{photo.tags}}" ng-mousedown="handlePhoto($event, photo)" oncontextmenu="return false" ng-class="{inflight: photo.inFlight, duplicate: photo.duplicate, photo: true}"></img>
     </span>
   </div>
 </div>

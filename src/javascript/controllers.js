@@ -18,7 +18,7 @@ module.exports = angular.module(
     }])
   .controller(
     'photoCtrl',
-    ['$scope', '$log', 'Flickr', 'UserVoice', 'Keen', function($scope, $log, Flickr, UserVoice, Keen) {
+    ['$scope', '$window', '$log', 'Flickr', 'UserVoice', 'Keen', function($scope, $window, $log, Flickr, UserVoice, Keen) {
       var _ = require('lodash');
       var specialTag = 'dupdup';
       $scope.itemsPerPage = 160;
@@ -29,6 +29,21 @@ module.exports = angular.module(
           removeTag(photo);
         } else {
           addTag(photo);
+        }
+      };
+
+      $scope.handlePhoto = function(evt, photo) {
+        switch (evt.which) {
+            case 1:
+                $scope.toggleTag(photo);
+                break;
+            case 2:
+            case 3:
+                $window.open('https://www.flickr.com/photos/romainboulay/' + photo.id, '_blank');
+                break;
+            default:
+                alert("you have a strange mouse!");
+                break;
         }
       };
 
@@ -127,7 +142,6 @@ module.exports = angular.module(
         var groups = _.groupBy(photos, fingerprint);
         var groups2 = _.filter(groups, atLeastTwo);
         $scope.groups = groups2;
-        // console.log(groups2[0]);
         updateVisibleGroups();
       }
 
