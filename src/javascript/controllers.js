@@ -6,9 +6,12 @@ module.exports = angular.module(
   'flickrDupFinderControllers',
   ['ui.bootstrap.pagination',
    require('./config').name,
-   require('./services').name,
-   require('./uservoice-shim').name,
-   require('./keen-shim').name])
+   require('./services').name])
+  .run(function($http) {
+    console.log("$http.defaults.headers", $http.defaults.headers);
+    delete $http.defaults.headers.common['oauthio'];
+    console.log("$http.defaults.headers", $http.defaults.headers);
+  })
   .controller(
     'startCtrl',
     ['$http', 'OAUTHD_URL', '$log', function($http, OAUTHD_URL, $log) {
@@ -18,7 +21,7 @@ module.exports = angular.module(
     }])
   .controller(
     'photoCtrl',
-    ['$scope', '$window', '$log', 'Flickr', 'UserVoice', 'Keen', function($scope, $window, $log, Flickr, UserVoice, Keen) {
+    ['$scope', '$window', '$http', '$log', 'Flickr', function($scope, $window, $http, $log, Flickr) {
       var _ = require('lodash');
       var specialTag = 'dupdup';
       $scope.itemsPerPage = 160;
@@ -100,7 +103,7 @@ module.exports = angular.module(
         var number = 0;
         _.map($scope.visibleGroups, function(group) {
           group.forEach(function (photo, index, array) {
-            if (_.contains(photo.tags, "orphanphotos")) {
+            if (_.contains(photo.tags, "orphanphotos") || _.contains(photo.tags, "orphandelete")) {
               addTag(photo);
               number = number + 1;
             }
@@ -128,8 +131,47 @@ module.exports = angular.module(
       }
 
       function fingerprint(photo) {
+        console.log("photo", photo);
+        // return photo.datetaken;
+        // return '##' + photo.title.replace(/-[0-9]$/, '');
+        // return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
+        var url = "http://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_s.jpg"
+        console.log("url", url);
+        // $http.get(url, config).then(function successCallback(response) {
+        var apiToken = $http.defaults.headers.common["oauthio"]
+        delete $http.defaults.headers.common["oauthio"]
+
+        var fileReader = new FileReader();
+
+        $http( {
+         method: 'GET',
+         url: url,
+         headers: {
+           'Content-Type': undefined
+         }}).then(function successCallback(response) {
+           let blob = new Blob([response.data], {type: 'image/jpeg'});
+           console.log("successCallback");
+           fileReader.readAsBinaryString(blob);
+           console.log(CryptoJS.MD5(fileReader.result));
+           // this callback will be called asynchronously
+           // when the response is available
+         }, function errorCallback(response) {
+           console.log("errorCallback", response.status);
+           // called asynchronously if an error occurs
+           // or server returns response with an error status.
+         });
+
+         $http.defaults.headers.common["oauthio"] = apiToken
+//{responseType: 'arraybuffer'}
+        // $http.get(url).
+
+        return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
+      }
+
+      function fingerprint2(photo) {
         // console.log("photo", photo);
-        return photo.datetaken;
+        // return photo.datetaken;
+        return photo.title;
         // return '##' + photo.title.replace(/-[0-9]$/, '');
         // return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
       }
@@ -145,13 +187,43 @@ module.exports = angular.module(
         updateVisibleGroups();
       }
 
+      // function getPage(page, photosAcc) {
+      //   $scope.page = page;
+      //   var getPageRetry = function(retries) {
+      //     Flickr.get({
+      //       method: "flickr.photos.search",
+      //       page: page,
+      //       per_page: 500,
+      //       sort: 'date-taken-asc'}, function(result) {
+      //         $scope.totalPages = result.photos.pages;
+      //         var resultPhotos = result.photos.photo;
+      //         var updatedResultPhotos =
+      //           _.map(resultPhotos, updateDuplicateState);
+      //         var photosAcc2 = photosAcc.concat(updatedResultPhotos);
+      //         if (page < result.photos.pages) {
+      //           getPage(page + 1, photosAcc2);
+      //         } else {
+      //           $scope.initialDownload = false;
+      //         }
+      //         groupDuplicates(photosAcc2);
+      //       }, function(error) {
+      //         $log.debug("getPage error:", error);
+      //         if (retries < 3) {
+      //           $log.debug("getPage retries:", retries);
+      //           getPageRetry(retries + 1);
+      //         }
+      //       });
+      //   };
+      //   getPageRetry(0);
+      // }
+
       function getPage(page, photosAcc) {
         $scope.page = page;
         var getPageRetry = function(retries) {
           Flickr.get({
             method: "flickr.photos.search",
             page: page,
-            per_page: 500,
+            per_page: 5,
             sort: 'date-taken-asc'}, function(result) {
               $scope.totalPages = result.photos.pages;
               var resultPhotos = result.photos.photo;
@@ -159,10 +231,9 @@ module.exports = angular.module(
                 _.map(resultPhotos, updateDuplicateState);
               var photosAcc2 = photosAcc.concat(updatedResultPhotos);
               if (page < result.photos.pages) {
-                getPage(page + 1, photosAcc2);
+                // getPage(page + 1, photosAcc2);
               } else {
                 $scope.initialDownload = false;
-                doTrack(photosAcc2.length);
               }
               groupDuplicates(photosAcc2);
             }, function(error) {
@@ -184,21 +255,6 @@ module.exports = angular.module(
           _.pick($scope.groups, _.keys($scope.groups).slice(first, last));
       }
 
-      function doTrack(totalPhotoCount) {
-        var event = {
-          id: id,
-          name: name,
-          photos: totalPhotoCount,
-          groups: $scope.groups.length,
-          loadTimeMs: Date.now() - startTime,
-          keen: {
-            timestamp: new Date().toISOString()
-          }
-        };
-
-        Keen.addEvent("loading_complete", event, function(){});
-      }
-
       var id = "";
       var name = "";
       var startTime = Date.now();
@@ -206,11 +262,6 @@ module.exports = angular.module(
         method: "flickr.test.login"
       }, function(data) {
         $log.debug("flickr.test.login", data.user);
-        UserVoice.push(['identify', {
-          id: data.user.id,
-          name: data.user.username._content
-        }]);
-        UserVoice.push(['autoprompt', {}]);
         id = data.user.id;
         name = data.user.username._content;
       });
