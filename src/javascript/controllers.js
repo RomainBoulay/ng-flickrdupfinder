@@ -7,12 +7,7 @@ module.exports = angular.module(
   ['ui.bootstrap.pagination',
    require('./config').name,
    require('./services').name])
-  .run(function($http) {
-    console.log("$http.defaults.headers", $http.defaults.headers);
-    delete $http.defaults.headers.common['oauthio'];
-    console.log("$http.defaults.headers", $http.defaults.headers);
-  })
-  .controller(
+   .controller(
     'startCtrl',
     ['$http', 'OAUTHD_URL', '$log', function($http, OAUTHD_URL, $log) {
       $http.get(OAUTHD_URL + '/auth/flickr').success(function(success) {
@@ -37,18 +32,17 @@ module.exports = angular.module(
 
       $scope.handlePhoto = function(evt, photo) {
         switch (evt.which) {
-            case 1:
-                $scope.toggleTag(photo);
-                break;
-            case 2:
-            case 3:
-                $window.open('https://www.flickr.com/photos/romainboulay/' + photo.id, '_blank');
-                break;
-            default:
-                alert("you have a strange mouse!");
-                break;
-        }
-      };
+          case 1:
+              $scope.toggleTag(photo);
+              break;
+          case 2:
+          case 3:
+              $window.open('https://www.flickr.com/photos/romainboulay/' + photo.id, '_blank');
+              break;
+          default:
+              alert("you have a strange mouse!");
+              break;
+        }};
 
       function addTag(photo) {
         if (_.contains(photo.tags, specialTag)) {
@@ -130,7 +124,7 @@ module.exports = angular.module(
         return photo;
       }
 
-      function fingerprint(photo) {
+      function fingerprint_test(photo) {
         console.log("photo", photo);
         // return photo.datetaken;
         // return '##' + photo.title.replace(/-[0-9]$/, '');
@@ -152,6 +146,7 @@ module.exports = angular.module(
            let blob = new Blob([response.data], {type: 'image/jpeg'});
            console.log("successCallback");
            fileReader.readAsBinaryString(blob);
+           console.log(CryptoJS.MD5("Message"));
            console.log(CryptoJS.MD5(fileReader.result));
            // this callback will be called asynchronously
            // when the response is available
@@ -162,19 +157,42 @@ module.exports = angular.module(
          });
 
          $http.defaults.headers.common["oauthio"] = apiToken
-//{responseType: 'arraybuffer'}
-        // $http.get(url).
 
-        return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
+        // return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
       }
 
-      function fingerprint2(photo) {
+      function fingerprint(photo) {
         // console.log("photo", photo);
         // return photo.datetaken;
+        console.log("photo", photo);
+
         return photo.title;
         // return '##' + photo.title.replace(/-[0-9]$/, '');
         // return photo.datetaken + '##' + photo.title.replace(/-[0-9]$/, '');
       }
+
+      /*
+      photo Object {id: "27905493292",
+       owner: "41150407@N05",
+        secret: "fe276afbcd",
+         server: "7598",
+          farm: 8…}
+          datetaken: "2006-08-19 10:48:54"
+          datetakengranularity: "0"
+          datetakenunknown: "0"
+          dateupload: "1467328420"
+          duplicate: false
+          farm: 8
+          id: "27905493292"
+          isfamily: 0
+          isfriend: 0
+          ispublic: 0
+          owner: "41150407@N05"
+          secret: "fe276afbcd"
+          server: "7598"
+          tags: "de autoupload baptême lair amandine 20100522"
+          title: "corniche d'or 1"
+      */
 
       function atLeastTwo(group) {
         return group.length > 1;
@@ -187,43 +205,14 @@ module.exports = angular.module(
         updateVisibleGroups();
       }
 
-      // function getPage(page, photosAcc) {
-      //   $scope.page = page;
-      //   var getPageRetry = function(retries) {
-      //     Flickr.get({
-      //       method: "flickr.photos.search",
-      //       page: page,
-      //       per_page: 500,
-      //       sort: 'date-taken-asc'}, function(result) {
-      //         $scope.totalPages = result.photos.pages;
-      //         var resultPhotos = result.photos.photo;
-      //         var updatedResultPhotos =
-      //           _.map(resultPhotos, updateDuplicateState);
-      //         var photosAcc2 = photosAcc.concat(updatedResultPhotos);
-      //         if (page < result.photos.pages) {
-      //           getPage(page + 1, photosAcc2);
-      //         } else {
-      //           $scope.initialDownload = false;
-      //         }
-      //         groupDuplicates(photosAcc2);
-      //       }, function(error) {
-      //         $log.debug("getPage error:", error);
-      //         if (retries < 3) {
-      //           $log.debug("getPage retries:", retries);
-      //           getPageRetry(retries + 1);
-      //         }
-      //       });
-      //   };
-      //   getPageRetry(0);
-      // }
-
       function getPage(page, photosAcc) {
         $scope.page = page;
         var getPageRetry = function(retries) {
           Flickr.get({
             method: "flickr.photos.search",
             page: page,
-            per_page: 5,
+            per_page: 500,
+            // per_page: 5,
             sort: 'date-taken-asc'}, function(result) {
               $scope.totalPages = result.photos.pages;
               var resultPhotos = result.photos.photo;
@@ -231,7 +220,7 @@ module.exports = angular.module(
                 _.map(resultPhotos, updateDuplicateState);
               var photosAcc2 = photosAcc.concat(updatedResultPhotos);
               if (page < result.photos.pages) {
-                // getPage(page + 1, photosAcc2);
+                getPage(page + 1, photosAcc2);
               } else {
                 $scope.initialDownload = false;
               }
