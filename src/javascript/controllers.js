@@ -164,7 +164,6 @@ module.exports = angular.module(
       function fingerprint(photo) {
         // console.log("photo", photo);
         // return photo.datetaken;
-        console.log("photo", photo);
 
         return photo.title;
         // return '##' + photo.title.replace(/-[0-9]$/, '');
